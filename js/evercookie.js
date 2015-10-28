@@ -116,19 +116,6 @@ try{
     } else {
         return false
     }
-  } 
-
-  // necessary for flash to communicate with js...
-  // please implement a better way
-  var _global_lso;
-  function _evercookie_flash_var(cookie) {
-    _global_lso = cookie;
-
-    // remove the flash object now
-    var swf = document.getElementById("myswf");
-    if (swf && swf.parentNode) {
-      swf.parentNode.removeChild(swf);
-    }
   }
 
   /*
@@ -331,7 +318,6 @@ try{
         self.evercookie_png(name, value);
         self.evercookie_etag(name, value);
         self.evercookie_cache(name, value);
-        self.evercookie_lso(name, value);
         if (opts.silverlight) {
           self.evercookie_silverlight(name, value);
         }
@@ -627,26 +613,6 @@ try{
       }
       
       // The result of a get() is now in self._ec._javaData
-    };
-
-    this.evercookie_lso = function (name, value) {
-      var div = document.getElementById("swfcontainer"),
-        flashvars = {},
-        params = {},
-        attributes = {};
-      if (div===null || div === undefined || !div.length) {
-        div = document.createElement("div");
-        div.setAttribute("id", "swfcontainer");
-        document.body.appendChild(div);
-      }
-
-      if (value !== undefined) {
-        flashvars.everdata = name + "=" + value;
-      }
-      params.swliveconnect = "true";
-      attributes.id        = "myswf";
-      attributes.name      = "myswf";
-      swfobject.embedSWF(_ec_baseurl + _ec_asseturi + "/evercookie.swf", "swfcontainer", "1", "1", "9.0.0", false, flashvars, params, attributes);
     };
 
     this.evercookie_png = function (name, value) {
@@ -1081,22 +1047,6 @@ try{
       return el;
     };
 
-    // wait for our swfobject to appear (swfobject.js to load)
-    var waitForSwf = this.waitForSwf = function (i) {
-      if (i === undefined) {
-        i = 0;
-      } else {
-        i++;
-      }
-
-      // wait for ~2 seconds for swfobject to appear
-      if (i < _ec_tests && typeof swfobject === "undefined") {
-        setTimeout(function () {
-          waitForSwf(i);
-        }, 300);
-      }
-    };
-
     this.evercookie_cookie = function (name, value) {
       if (value !== undefined) {
         // expire the cookie first
@@ -1254,7 +1204,6 @@ try{
 
   };
 
-  window._evercookie_flash_var = _evercookie_flash_var;
   /**
    * Because Evercookie is a class, it should has first letter in capital
    * Keep first letter in small for legacy purpose
