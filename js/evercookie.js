@@ -70,8 +70,7 @@ try{
   'use strict';
   var document = window.document,
     Image = window.Image,
-    globalStorage = window.globalStorage,
-    swfobject = window.swfobject;
+    globalStorage = window.globalStorage;
 
   try{
     var localStore = window.localStorage
@@ -392,10 +391,6 @@ try{
         // we hit our max wait time or got all our data
         else
         {
-          // get just the piece of data we need from swf
-          self._ec.lsoData = self.getFromStr(name, _global_lso);
-          _global_lso = undefined;
-
           // get just the piece of data we need from silverlight
           self._ec.slData = self.getFromStr(name, _global_isolated);
           _global_isolated = undefined;
