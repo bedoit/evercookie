@@ -13,7 +13,6 @@
  *  - standard http cookies
  *  - flash cookies (local shared objects)
  *  - silverlight isolated storage
- *  - png generation w/forced cache and html5 canvas pixel reading
  *  - http etags
  *  - http cache
  *  - window.name
@@ -229,8 +228,6 @@ try{
     asseturi: '/assets', // assets = .fla, .jar, etc
     phpuri: '/php', // php file path or route
     authPath: false, //'/evercookie_auth.php', // set to false to disable Basic Authentication cache
-    pngCookieName: 'evercookie_png',
-    pngPath: '/evercookie_png.php',
     etagCookieName: 'evercookie_etag',
     etagPath: '/evercookie_etag.php',
     cacheCookieName: 'evercookie_cache',
@@ -252,8 +249,6 @@ try{
    * @param {String} options.asseturi asset path (eg: www.sitename.com/assets use /assets)
    * @param {String} options.phpuri php path/route (eg: www.sitename.com/php use /php)
    * @param {String|Function} options.domain as a string, domain for cookie, as a function, accept window object and return domain string
-   * @param {String} options.pngCookieName
-   * @param {String} options.pngPath
    * @param {String} options.etagCookieName:
    * @param {String} options.etagPath
    * @param {String} options.cacheCookieName
@@ -311,10 +306,10 @@ try{
         i = 0;
       }
       // first run
-      if (i === 0) {      
+      if (i === 0) {
         self.evercookie_database_storage(name, value);
         self.evercookie_indexdb_storage(name, value);
-        self.evercookie_png(name, value);
+
         self.evercookie_etag(name, value);
         self.evercookie_cache(name, value);
         if (opts.silverlight) {
@@ -364,7 +359,7 @@ try{
         }
       }
 
-      // when reading data, we need to wait for swf, db, silverlight, java and png
+      // when reading data, we need to wait for db, silverlight, java
       else
       {
         if (
@@ -372,12 +367,10 @@ try{
             // we support local db and haven't read data in yet
             (window.openDatabase && typeof self._ec.dbData === "undefined") ||
             (idb() && (typeof self._ec.idbData === "undefined" || self._ec.idbData === "")) ||
-            (typeof _global_lso === "undefined") ||
             (typeof self._ec.etagData === "undefined") ||
             (typeof self._ec.cacheData === "undefined") ||
             (typeof self._ec.javaData === "undefined") ||
             (self._ec.hstsData === undefined || self.hsts_cookie.is_working()) || 
-            (document.createElement("canvas").getContext && (typeof self._ec.pngData === "undefined" || self._ec.pngData === "")) ||
             (typeof _global_isolated === "undefined")
           ) &&
           i++ < _ec_tests
@@ -608,63 +601,6 @@ try{
       }
       
       // The result of a get() is now in self._ec._javaData
-    };
-
-    this.evercookie_png = function (name, value) {
-      var canvas = document.createElement("canvas"),
-       img, ctx, origvalue;
-      canvas.style.visibility = "hidden";
-      canvas.style.position = "absolute";
-      canvas.width = 200;
-      canvas.height = 1;
-      if (canvas && canvas.getContext) {
-        // {{opts.pngPath}} handles the hard part of generating the image
-        // based off of the http cookie and returning it cached
-        img = new Image();
-        img.style.visibility = "hidden";
-        img.style.position = "absolute";
-        if (value !== undefined) {
-          // make sure we have evercookie session defined first
-          document.cookie = opts.pngCookieName + "=" + value + "; path=/; domain=" + _ec_domain;
-        } else {
-          self._ec.pngData = undefined;
-          ctx = canvas.getContext("2d");
-
-          // interestingly enough, we want to erase our evercookie
-          // http cookie so the php will force a cached response
-          origvalue = this.getFromStr(opts.pngCookieName, document.cookie);
-          document.cookie = opts.pngCookieName + "=; expires=Mon, 20 Sep 2010 00:00:00 UTC; path=/; domain=" + _ec_domain;
-
-          img.onload = function () {
-            // put our cookie back
-            document.cookie = opts.pngCookieName + "=" + origvalue + "; expires=Tue, 31 Dec 2030 00:00:00 UTC; path=/; domain=" + _ec_domain;
-
-            self._ec.pngData = "";
-            ctx.drawImage(img, 0, 0);
-
-            // get CanvasPixelArray from  given coordinates and dimensions
-            var imgd = ctx.getImageData(0, 0, 200, 1),
-              pix = imgd.data, i, n;
-
-            // loop over each pixel to get the "RGB" values (ignore alpha)
-            for (i = 0, n = pix.length; i < n; i += 4) {
-              if (pix[i] === 0) {
-                break;
-              }
-              self._ec.pngData += String.fromCharCode(pix[i]);
-              if (pix[i + 1] === 0) {
-                break;
-              }
-              self._ec.pngData += String.fromCharCode(pix[i + 1]);
-              if (pix[i + 2] === 0) {
-                break;
-              }
-              self._ec.pngData += String.fromCharCode(pix[i + 2]);
-            }
-          };
-        }
-        img.src = _ec_baseurl + _ec_phpuri + opts.pngPath + "?name=" + name + "&cookie=" + opts.pngCookieName;
-      }
     };
 
     this.evercookie_local_storage = function (name, value) {
