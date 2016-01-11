@@ -64,17 +64,16 @@
   // the best candidate is very-very-likely the correct one
 
 */
-try{
+try {
 (function (window) {
   'use strict';
   var document = window.document,
     Image = window.Image,
     globalStorage = window.globalStorage;
 
-  try{
-    var localStore = window.localStorage
-  }catch(ex){}
-  
+  try {
+    var localStore = window.localStorage;
+  } catch (ex) {}
   try {
     var sessionStorage = window.sessionStorage;
   } catch (e) { }
@@ -106,13 +105,13 @@ try{
     }
   }
 
- function idb() {
+  function idb() {
     if ('indexedDB' in window) {
-        return true
+      return true;
     } else if (window.indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB) {
-        return true
+      return true;
     } else {
-        return false
+      return false;
     }
   }
 
@@ -129,165 +128,147 @@ try{
     _global_isolated = "";
   }
 
-  
   // hsts-cookie "lib"
-  function HSTS_Cookie(domains){
-        var fields = [];
-        var remaining = 0;
-        var working = false;
+  function HSTS_Cookie(domains) {
+    var fields = [];
+    var remaining = 0;
+    var working = false;
 
-        function create_request(i, src, callback){
-            var img = document.createElement('img');
-            img.src = src + '#' + parseInt(Math.random()*32000); // prevent caching
-            img.onload = function(){
-                fields[i] = true;
-                remaining -= 1;
-                if(remaining <= 0){
-                    working = false;
-                    callback(fields);
-                }
-            };
-            img.onerror = function(){
-                fields[i] = false;
-                remaining -= 1;
-                if(remaining <= 0){
-                    working = false;
-                    callback(fields);
-                }
-            };
-            return img;
+    function create_request(i, src, callback) {
+      var img = document.createElement('img');
+      img.src = src + '#' + parseInt(Math.random()*32000); // prevent caching
+      img.onload = function () {
+        fields[i] = true;
+        remaining -= 1;
+        if (remaining <= 0) {
+          working = false;
+          callback(fields);
         }
-        function pad(value, length) {
-            return (value.toString().length < length) ? pad("0"+value, length):value;
+      };
+      img.onerror = function () {
+        fields[i] = false;
+        remaining -= 1;
+        if (remaining <= 0) {
+          working = false;
+          callback(fields);
         }
-        function bools_to_int(bools){
-            var n = 0, l = bools.length;
-            for (var i = 0; i < l; ++i) {
-                n = (n << 1) + (bools[i] ? 1 : 0);
-            }
-            return n;
-        }
-        function int_to_bools(value, bit_count){
-            var bools = [];
-            var bits = parseInt(value, 10).toString(2);
-            bits = pad(bits, 32);
-            for(var i=32-bit_count; i < 32; ++i){
-                bools.push(bits[i]=='1' ? true : false);
-            }
-            return bools;
-        }
-        return {
-            'bools_to_int': bools_to_int,
-            'is_working': function(){ return working },
-            'get_hsts_value': function (callback){
-                if(working) return false;
-                working = true;
-                fields = [];
-                remaining = domains.length;
-                for(var i = 0; i < domains.length; ++i){
-                    fields.push(undefined);
-                    var img = create_request(i, domains[i], callback);
-                }
-                return true;
-            },
-            'set_hsts_value': function (values, callback){
-                if(working) return false;
-                working = true;
-                fields = [];
-                remaining = domains.length;
-                for(var i = 0; i < domains.length; ++i){
-                    fields.push(undefined);
-                    if(values[i])
-                        create_request(i, domains[i]+'?SET=1', callback);
-                    else
-                        create_request(i, domains[i]+'?DEL=1', callback);
-                }
-                return true;
-            },
-            'set_hsts_as_int': function (value, callback){
-                var value = int_to_bools(value, domains.length);
-                return this.set_hsts_value(value, callback);
-            },            
-            'get_hsts_as_int': function (callback){
-                return this.get_hsts_value(function(fields){
-                    callback(bools_to_int(fields));
-                });
-            }
-        };
+      };
+      return img;
     }
-  
-  
-  
+    function pad(value, length) {
+      return (value.toString().length < length) ? pad("0"+value, length):value;
+    }
+    function bools_to_int(bools) {
+      var n = 0, l = bools.length;
+      for (var i = 0; i < l; ++i) {
+        n = (n << 1) + (bools[i] ? 1 : 0);
+      }
+      return n;
+    }
+    function int_to_bools(value, bit_count){
+      var bools = [];
+      var bits = parseInt(value, 10).toString(2);
+      bits = pad(bits, 32);
+      for (var i=32-bit_count; i < 32; ++i){
+        bools.push(bits[i]=='1' ? true : false);
+      }
+      return bools;
+    }
+    return {
+      'bools_to_int': bools_to_int,
+      'is_working': function () { return working; },
+      'get_hsts_value': function (callback) {
+        if (working) return false;
+        working = true;
+        fields = [];
+        remaining = domains.length;
+        for (var i = 0; i < domains.length; ++i) {
+          fields.push(undefined);
+          var img = create_request(i, domains[i], callback);
+        }
+        return true;
+      },
+      'set_hsts_value': function (values, callback) {
+        if (working) return false;
+        working = true;
+        fields = [];
+        remaining = domains.length;
+        for (var i = 0; i < domains.length; ++i) {
+          fields.push(undefined);
+          if (values[i])
+            create_request(i, domains[i]+'?SET=1', callback);
+          else
+            create_request(i, domains[i]+'?DEL=1', callback);
+        }
+        return true;
+      },
+      'set_hsts_as_int': function (value, callback) {
+        var value = int_to_bools(value, domains.length);
+        return this.set_hsts_value(value, callback);
+      },
+      'get_hsts_as_int': function (callback) {
+        return this.get_hsts_value(function (fields) {
+          callback(bools_to_int(fields));
+        });
+      }
+    };
+  }
+
   var defaultOptionMap = {
-    history: true, // CSS history knocking or not .. can be network intensive
-    java: true, // Java applet on/off... may prompt users for permission to run.
     tests: 10,  // 1000 what is it, actually?
-    silverlight: true, // you might want to turn it off https://github.com/samyk/evercookie/issues/45
     domain: '.' + window.location.host.replace(/:\d+/, ''), // Get current domain
     baseurl: '', // base url for php, flash and silverlight assets
     asseturi: '/assets', // assets = .fla, .jar, etc
     phpuri: '/php', // php file path or route
-    authPath: false, //'/evercookie_auth.php', // set to false to disable Basic Authentication cache
-    etagCookieName: 'evercookie_etag',
-    etagPath: '/evercookie_etag.php',
-    cacheCookieName: 'evercookie_cache',
-    cachePath: '/evercookie_cache.php',
-	hsts: false,
-	hsts_domains: []
+    authPath: false, // '/evercookie_auth.php', // set to false to disable Basic Authentication cache
+    hsts: false,
+    hsts_domains: []
   };
-  
+
   var _baseKeyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
   /**
    * @class Evercookie
    * @param {Object} options
-   * @param {Boolean} options.history CSS history knocking or not .. can be network intensive
    * @param {Boolean} options.java Java applet on/off... may prompt users for permission to run.
    * @param {Number} options.tests
-   * @param {Boolean} options.silverlight you might want to turn it off https://github.com/samyk/evercookie/issues/45
    * @param {String} options.domain (eg: www.sitename.com use .sitename.com)
    * @param {String} options.baseurl base url (eg: www.sitename.com/demo use /demo)
    * @param {String} options.asseturi asset path (eg: www.sitename.com/assets use /assets)
    * @param {String} options.phpuri php path/route (eg: www.sitename.com/php use /php)
    * @param {String|Function} options.domain as a string, domain for cookie, as a function, accept window object and return domain string
-   * @param {String} options.etagCookieName:
-   * @param {String} options.etagPath
-   * @param {String} options.cacheCookieName
-   * @param {String} options.cachePath
-   * @param {String} options.hsts	Turn hsts cookies on and off.
-   * @param {Array} options.hsts_domains	The domains used for the hsts cookie. 1 Domain = one bit (8 domains => 8 bit => values up to 255)
+   * @param {String} options.hsts Turn hsts cookies on and off.
+   * @param {Array} options.hsts_domains  The domains used for the hsts cookie. 1 Domain = one bit (8 domains => 8 bit => values up to 255)
    */
   function Evercookie(options) {
     options = options || {};
     var opts = {};
     for (var key in defaultOptionMap) {
       var optValue = options[key];
-      if(typeof optValue !== 'undefined') {
-        opts[key] = optValue
+      if (typeof optValue !== 'undefined') {
+        opts[key] = optValue;
       } else {
         opts[key] = defaultOptionMap[key];
       }
     }
-    if(typeof opts.domain === 'function'){
+    if (typeof opts.domain === 'function') {
       opts.domain = opts.domain(window);
     }
-    var _ec_history = opts.history,
-      _ec_java =  opts.java,
-      _ec_tests = opts.tests,
+    var _ec_tests = opts.tests,
       _ec_baseurl = opts.baseurl,
       _ec_asseturi = opts.asseturi,
       _ec_phpuri = opts.phpuri,
       _ec_domain = opts.domain,
-	  _ec_hsts = opts.hsts;
+      _ec_hsts = opts.hsts;
 
     // private property
     var self = this;
     this._ec = {};
-    if (_ec_hsts){
-        if(opts.hsts_domains.length <= 8){
-            // TODO: warn on some more prominent place ?
-            console.log('HSTS cookie with '+opts.hsts_domains.length+' can only save values up to ' + Math.pow(2, opts.hsts_domains.length) - 1);
-        }
-        this.hsts_cookie = HSTS_Cookie(opts.hsts_domains);
+    if (_ec_hsts) {
+      if (opts.hsts_domains.length <= 8) {
+        // TODO: warn on some more prominent place ?
+        console.log('HSTS cookie with '+opts.hsts_domains.length+' can only save values up to ' + Math.pow(2, opts.hsts_domains.length) - 1);
+      }
+      this.hsts_cookie = HSTS_Cookie(opts.hsts_domains);
     }
 
     this.get = function (name, cb, dont_reset) {
@@ -310,39 +291,26 @@ try{
         self.evercookie_database_storage(name, value);
         self.evercookie_indexdb_storage(name, value);
 
-        self.evercookie_etag(name, value);
-        self.evercookie_cache(name, value);
-        if (opts.silverlight) {
-          self.evercookie_silverlight(name, value);
-        }
         if (opts.authPath) {
           self.evercookie_auth(name, value);
         }
-        if (_ec_java) {
-          self.evercookie_java(name, value);
-        }
-        
         self._ec.userData      = self.evercookie_userdata(name, value);
         self._ec.cookieData    = self.evercookie_cookie(name, value);
         self._ec.localData     = self.evercookie_local_storage(name, value);
         self._ec.globalData    = self.evercookie_global_storage(name, value);
         self._ec.sessionData   = self.evercookie_session_storage(name, value);
         self._ec.windowData    = self.evercookie_window(name, value);
-        
-        if (_ec_history) {
-          self._ec.historyData = self.evercookie_history(name, value);
-        }
         if (_ec_hsts) {
-            self._ec.hstsData = undefined;
-            if( value === undefined ){
-                self.hsts_cookie.get_hsts_as_int(function(int_val){
-                    self._ec.hstsData = int_val;
-                });
-            }else{
-                self.hsts_cookie.set_hsts_as_int(value, function(val){
-                    self._ec.hstsData = self.hsts_cookie.bools_to_int(val);
-                });
-            }
+          self._ec.hstsData = undefined;
+          if ( value === undefined ) {
+            self.hsts_cookie.get_hsts_as_int(function (int_val) {
+              self._ec.hstsData = int_val;
+            });
+          }else {
+            self.hsts_cookie.set_hsts_as_int(value, function (val) {
+              self._ec.hstsData = self.hsts_cookie.bools_to_int(val);
+            });
+          }
         }
       }
 
@@ -382,8 +350,7 @@ try{
         }
 
         // we hit our max wait time or got all our data
-        else
-        {
+        else {
           // get just the piece of data we need from silverlight
           self._ec.slData = self.getFromStr(name, _global_isolated);
           _global_isolated = undefined;
@@ -484,33 +451,6 @@ try{
       transport.send();
     };
 
-    this.evercookie_cache = function (name, value) {
-      if (value !== undefined) {
-        // make sure we have evercookie session defined first
-        document.cookie = opts.cacheCookieName + "=" + value + "; path=/; domain=" + _ec_domain;
-        // {{ajax request to opts.cachePath}} handles caching
-        self.ajax({
-          url: _ec_baseurl + _ec_phpuri + opts.cachePath + "?name=" + name + "&cookie=" + opts.cacheCookieName,
-          success: function (data) {}
-        });
-      } else {
-        // interestingly enough, we want to erase our evercookie
-        // http cookie so the php will force a cached response
-        var origvalue = this.getFromStr(opts.cacheCookieName, document.cookie);
-        self._ec.cacheData = undefined;
-        document.cookie = opts.cacheCookieName + "=; expires=Mon, 20 Sep 2010 00:00:00 UTC; path=/; domain=" + _ec_domain;
-
-        self.ajax({
-          url: _ec_baseurl + _ec_phpuri + opts.cachePath + "?name=" + name + "&cookie=" + opts.cacheCookieName,
-          success: function (data) {
-            // put our cookie back
-            document.cookie = opts.cacheCookieName + "=" + origvalue + "; expires=Tue, 31 Dec 2030 00:00:00 UTC; path=/; domain=" + _ec_domain;
-
-            self._ec.cacheData = data;
-          }
-        });
-      }
-    };
     this.evercookie_auth = function (name, value) {
       if (value !== undefined) {
         // {{opts.authPath}} handles Basic Access Authentication
@@ -524,83 +464,6 @@ try{
           }
         });
       }
-    };
-
-    this.evercookie_etag = function (name, value) {
-      if (value !== undefined) {
-        // make sure we have evercookie session defined first
-        document.cookie = opts.etagCookieName + "=" + value + "; path=/; domain=" + _ec_domain;
-        // {{ajax request to opts.etagPath}} handles etagging
-        self.ajax({
-          url: _ec_baseurl + _ec_phpuri + opts.etagPath + "?name=" + name + "&cookie=" + opts.etagCookieName,
-          success: function (data) {}
-        });
-      } else {
-        // interestingly enough, we want to erase our evercookie
-        // http cookie so the php will force a cached response
-        var origvalue = this.getFromStr(opts.etagCookieName, document.cookie);
-        self._ec.etagData = undefined;
-        document.cookie = opts.etagCookieName + "=; expires=Mon, 20 Sep 2010 00:00:00 UTC; path=/; domain=" + _ec_domain;
-
-        self.ajax({
-          url: _ec_baseurl + _ec_phpuri + opts.etagPath + "?name=" + name + "&cookie=" + opts.etagCookieName,
-          success: function (data) {
-            // put our cookie back
-            document.cookie = opts.etagCookieName + "=" + origvalue + "; expires=Tue, 31 Dec 2030 00:00:00 UTC; path=/; domain=" + _ec_domain;
-
-            self._ec.etagData = data;
-          }
-        });
-      }
-    };
-    
-    this.evercookie_java = function (name, value) {
-      var div = document.getElementById("ecAppletContainer");
-
-      // Exit if dtjava.js was not included in the page header.
-      if (typeof dtjava === "undefined") {
-	return;
-      }
-      
-      // Create the container div if none exists.
-      if (div===null || div === undefined || !div.length) {
-        div = document.createElement("div");
-        div.setAttribute("id", "ecAppletContainer");
-        div.style.position = "absolute";
-        div.style.top = "-3000px";
-        div.style.left = "-3000px";
-        div.style.width = "1px";
-        div.style.height = "1px";
-        document.body.appendChild(div);
-      }
-
-      // If the Java applet is not yet defined, embed it.
-      if (typeof ecApplet === "undefined") {
-        dtjava.embed({ 
-        	id: "ecApplet",
-        	url: _ec_baseurl + _ec_asseturi + "/evercookie.jnlp", 
-        	width: "1px", 
-        	height: "1px", 
-        	placeholder: "ecAppletContainer"
-          }, {},{ onJavascriptReady: doSetOrGet });
-        // When the applet is loaded we will continue in doSetOrGet() 
-      }
-      else {
-	// applet already running... call doGetOrSet() directly.
-	doSetOrGet("ecApplet");
-      }
-      
-      function doSetOrGet(appletId) {
-	var applet = document.getElementById(appletId);	
-        if (value !== undefined) {
-          applet.set(name,value);
-        }
-        else {
-          self._ec.javaData = applet.get(name);
-        }
-      }
-      
-      // The result of a get() is now in self._ec._javaData
     };
 
     this.evercookie_local_storage = function (name, value) {
@@ -647,14 +510,13 @@ try{
         }
       } catch (e) { }
     };
- 
+
     this.evercookie_indexdb_storage = function(name, value) {
     try {
     if (!('indexedDB' in window)) {
-
-        indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
-        IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
-        IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+      indexedDB = window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB;
+      IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction;
+      IDBKeyRange = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
     }
 
     if (indexedDB) {
@@ -679,7 +541,7 @@ try{
         if (value !== undefined) {
 
 
-            request.onsuccess = function(event) {
+            request.onsuccess = function (event) {
                 var idb = event.target.result;
                 if (idb.objectStoreNames.contains("evercookie")) {
                     var tx = idb.transaction(["evercookie"], "readwrite");
@@ -692,29 +554,24 @@ try{
             }
 
         } else {
-
-            request.onsuccess = function(event) {
-
-                var idb = event.target.result;
-
-                if (!idb.objectStoreNames.contains("evercookie")) {
-
-                    self._ec.idbData = undefined;
+          request.onsuccess = function (event) {
+            var idb = event.target.result;
+            if (!idb.objectStoreNames.contains("evercookie")) {
+              self._ec.idbData = undefined;
+            } else {
+              var tx = idb.transaction(["evercookie"]);
+              var objst = tx.objectStore("evercookie");
+              var qr = objst.get(name);
+              qr.onsuccess = function (event) {
+                if (qr.result === undefined) {
+                  self._ec.idbData = undefined;
                 } else {
-                    var tx = idb.transaction(["evercookie"]);
-                    var objst = tx.objectStore("evercookie");
-                    var qr = objst.get(name);
-
-                    qr.onsuccess = function(event) {
-                        if (qr.result === undefined) {
-                            self._ec.idbData = undefined
-                        } else {
-                            self._ec.idbData = qr.result.value;
-                        }
-                    }
+                  self._ec.idbData = qr.result.value;
                 }
-           idb.close();
+              };
             }
+            idb.close();
+          };
         }
     }
  } catch (e) {}
@@ -742,46 +599,6 @@ try{
             return globalStorage[host][name];
           }
         } catch (e) { }
-      }
-    };
-
-    this.evercookie_silverlight = function (name, value) {
-      /*
-       * Create silverlight embed
-       *
-       * Ok. so, I tried doing this the proper dom way, but IE chokes on appending anything in object tags (including params), so this
-       * is the best method I found. Someone really needs to find a less hack-ish way. I hate the look of this shit.
-       */
-      var source = _ec_baseurl + _ec_asseturi + "/evercookie.xap",
-        minver = "4.0.50401.0",
-        initParam = "",
-        html;
-      if (value !== undefined) {
-        initParam = '<param name="initParams" value="' + name + '=' + value + '" />';
-      }
-
-      html =
-      '<object style="position:absolute;left:-500px;top:-500px" data="data:application/x-silverlight-2," type="application/x-silverlight-2" id="mysilverlight" width="0" height="0">' +
-        initParam +
-        '<param name="source" value="' + source + '"/>' +
-        '<param name="onLoad" value="onSilverlightLoad"/>' +
-        '<param name="onError" value="onSilverlightError"/>' +
-        '<param name="background" value="Transparent"/>' +
-        '<param name="windowless" value="true"/>' +
-        '<param name="minRuntimeVersion" value="' + minver + '"/>' +
-        '<param name="autoUpgrade" value="false"/>' +
-        '<a href="http://go.microsoft.com/fwlink/?LinkID=149156&v=' + minver + '" style="display:none">' +
-        'Get Microsoft Silverlight' +
-        '</a>' +
-      '</object>';
-      try{
-        if (typeof jQuery === 'undefined') {
-          document.body.appendChild(html);
-        } else {
-          $('body').append(html);
-        }
-      }catch(ex){
-      	
       }
     };
 
@@ -893,63 +710,6 @@ try{
         }
       }
       return str;
-    };
-
-    // this is crazy but it's 4am in dublin and i thought this would be hilarious
-    // blame the guinness
-    this.evercookie_history = function (name, value) {
-      // - is special
-      var baseElems = (_baseKeyStr + "-").split(""),
-        // sorry google.
-        url = "http://www.google.com/evercookie/cache/" + this.getHost() + "/" + name,
-        i, base,
-        letter = "",
-        val = "",
-        found = 1;
-
-      if (value !== undefined) {
-        // don't reset this if we already have it set once
-        // too much data and you can't clear previous values
-        if (this.hasVisited(url)) {
-          return;
-        }
-
-        this.createIframe(url, "if");
-        url = url + "/";
-
-        base = this.encode(value).split("");
-        for (i = 0; i < base.length; i++) {
-          url = url + base[i];
-          this.createIframe(url, "if" + i);
-        }
-
-        // - signifies the end of our data
-        url = url + "-";
-        this.createIframe(url, "if_");
-      } else {
-        // omg you got csspwn3d
-        if (this.hasVisited(url)) {
-          url = url + "/";
-
-          while (letter !== "-" && found === 1) {
-            found = 0;
-            for (i = 0; i < baseElems.length; i++) {
-              if (this.hasVisited(url + baseElems[i])) {
-                letter = baseElems[i];
-                if (letter !== "-") {
-                  val = val + letter;
-                }
-                url = url + letter;
-                found = 1;
-                break;
-              }
-            }
-          }
-
-          // lolz
-          return this.decode(val);
-        }
-      }
     };
 
     this.createElem = function (type, name, append) {
@@ -1076,7 +836,7 @@ try{
       created_style,
       /* create a custom style tag for the specific link. Set the CSS visited selector to a known value */
       _cssText = "#_ec_rgb_link:visited{display:none;color:#FF0000}",
-	  style;
+    style;
 
     /* Methods for IE6, IE7, FF, Opera, and Safari */
     try {
@@ -1142,4 +902,4 @@ try{
    */
   window.evercookie = window.Evercookie = Evercookie; 
 }(window));
-}catch(ex){}
+} catch (ex) {}
